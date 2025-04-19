@@ -1,0 +1,196 @@
+Voice Assistant( Project )
+
+# Install Required Libraries
+!pip install pyttsx3 SpeechRecognition wikipedia pywhatkit pyjokes requests
+!pip install pipwin
+!pipwin install pyaudio
+
+#import libraries
+import speech_recognition as sr
+import pyttsx3
+import datetime
+import wikipedia
+import pywhatkit
+import subprocess
+import webbrowser
+import os
+import pyjokes
+import smtplib
+import re
+import ctypes
+
+
+#Speak Engine
+engine = pyttsx3.init()
+engine.setProperty('rate', 150)
+
+def speak(text):
+    engine.say(text)
+    engine.runAndWait()
+
+
+#Take Command
+def take_command():
+    recognizer = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("🎤 Listening...")
+        recognizer.adjust_for_ambient_noise(source)
+        audio = recognizer.listen(source)
+
+    try:
+        print("🔎 Recognizing...")
+        query = recognizer.recognize_google(audio)
+        print(f"🗣️ You said: {query}")
+        return query.lower()
+    except sr.UnknownValueError:
+        speak("Sorry, I didn't catch that.")
+        return ""
+    except sr.RequestError:
+        speak("Could not request results.")
+        return ""
+
+
+#Send Email
+def send_email(to, content):
+    try:
+        server = smtplib.SMTP('smtp.gmail.com', 587)
+        server.starttls()
+        # Use your email & app password here
+        server.login('youremail@gmail.com', 'yourapppassword')  
+        server.sendmail('youremail@gmail.com', to, content)
+        server.quit()
+        speak("Email has been sent.")
+    except Exception as e:
+        print(e)
+        speak("Unable to send the email.")
+
+
+#Run Assistant
+def run_assistant():
+    speak("Hello! I am your voice assistant. How can I help you?")
+    while True:
+        command = take_command()
+
+        if 'time' in command:
+            time = datetime.datetime.now().strftime('%I:%M %p')
+            speak(f"The current time is {time}")
+
+        elif 'wikipedia' in command:
+            topic = command.replace("wikipedia", "")
+            speak(f"Searching Wikipedia for {topic}")
+            try:
+                results = wikipedia.summary(topic, sentences=2)
+                speak("According to Wikipedia...")
+                speak(results)
+            except:
+                speak("Sorry, couldn't find anything.")
+
+        elif 'open youtube' in command:
+            webbrowser.open("https://www.youtube.com")
+
+        elif 'open google' in command:
+            webbrowser.open("https://www.google.com")
+
+        elif 'launch notepad' in command:
+            subprocess.Popen(['notepad.exe'])
+
+        elif 'open folder' in command:
+            folder_path = "C:\\Users\\YourUsername\\Documents"
+            os.startfile(folder_path)
+            speak("Opening folder.")
+
+        elif 'voice typing' in command:
+            speak("Start speaking. I will type what you say.")
+            while True:
+                text = take_command()
+                if 'stop typing' in text:
+                    speak("Stopping voice typing.")
+                    break
+                print("📝", text)
+
+        elif 'play song' in command:
+            song = command.replace('play', '')
+            speak(f"Playing {song}")
+            pywhatkit.playonyt(song)
+
+        elif 'empty recycle bin' in command:
+            try:
+                ctypes.windll.shell32.SHEmptyRecycleBinW(None, None, 1)
+                speak("Recycle Bin emptied.")
+            except:
+                speak("Could not empty the recycle bin.")
+
+        elif 'tell me a joke' in command:
+            joke = pyjokes.get_joke()
+            speak(joke)
+
+        elif 'calculate' in command:
+            speak("What should I calculate?")
+            calc = take_command()
+            try:
+                result = eval(calc)
+                speak(f"The result is {result}")
+            except:
+                speak("Sorry, I couldn't calculate that.")
+
+        elif 'send email' in command:
+            speak("What should I say?")
+            content = take_command()
+            speak("Whom should I send it to?")
+            to = 'receiver@example.com'  # replace with actual email
+            send_email(to, content)
+
+        elif 'exit' in command or 'stop' in command:
+            speak("Goodbye! Have a great day.")
+            break
+
+        elif command != "":
+            speak("I can search that on Google.")
+            pywhatkit.search(command)
+
+
+# Run
+run_assistant()
+
+
+
+#Basic Commands
+
+ "What time is it"
+-> Tells current time
+ "What is today's date"
+-> Tells today's date
+ "Wikipedia [your topic]"
+-> Reads a short Wikipedia summary
+ "Open YouTube"
+-> Opens YouTube in browser
+ "Open Google"
+-> Opens Google in browser
+ "Launch Notepad"
+-> Opens Notepad
+ "Voice typing"
+-> Starts voice-to-text dictation
+ "Stop typing"
+-> Ends voice typing
+ Entertainment
+ "Play [song name]"
+-> Plays the song on YouTube
+ "Tell me a joke"
+-> Tells a joke using pyjokes
+ "Motivate me"
+-> Tells a motivational quote
+ Useful Tools
+ "Calculate 5 plus 6"
+-> Performs simple calculation
+"Take a note"
+-> Saves a note in a file
+ Information
+ "What's the weather"
+-> Tells current weather (set to Delhi by default)
+ "What's the news"
+-> Reads top 5 headlines from Google News
+ Exit Command
+ "Exit"
+-> Shuts down the assistant
+ "Stop"
+-> Shuts down the assistant
